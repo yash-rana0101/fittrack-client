@@ -1,5 +1,5 @@
 import { Hero } from "@/components/landing/Hero";
-import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import { Pricing } from "@/components/landing/Pricing";
@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <FeaturesGrid />
+      <FeaturesSection />
       <HowItWorks />
       <TestimonialCarousel />
       <Pricing />
