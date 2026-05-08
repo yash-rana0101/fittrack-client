@@ -8,6 +8,10 @@ interface OnboardingData {
   height: number;
   weight: number;
   goals: string[];
+  activityLevel: string;
+  username: string;
+  bio: string;
+  avatarUrl: string;
 }
 
 interface OnboardingState {
