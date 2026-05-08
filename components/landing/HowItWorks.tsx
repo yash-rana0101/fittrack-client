@@ -1,248 +1,138 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { UserPlus, Target, TrendingUp, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { UserPlus, Target, TrendingUp, Dumbbell, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ─── Data ────────────────────────────────────────────────────
-
-interface StepData {
-  number: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-}
-
-const STEPS: StepData[] = [
+const STEPS = [
   {
-    number: "01",
-    title: "Sign Up",
-    description:
-      "Create your free account in under 30 seconds. No credit card, no commitments — just your email and you're in.",
+    id: "signup",
+    title: "Quick Sign Up",
+    description: "Create your free account in under 30 seconds. No credit card required.",
     icon: UserPlus,
   },
   {
-    number: "02",
-    title: "Set Goals",
-    description:
-      "Tell us what you're training for. We'll build a personalised programme around your schedule, experience, and targets.",
+    id: "goals",
+    title: "Set Your Goals",
+    description: "Tell us what you're training for and we'll build a personalized program.",
     icon: Target,
   },
   {
-    number: "03",
+    id: "track",
     title: "Track Progress",
-    description:
-      "Log workouts, hit milestones, and watch your data turn into real results. Every session makes you sharper.",
+    description: "Log workouts and watch your data turn into real, measurable results.",
     icon: TrendingUp,
+  },
+  {
+    id: "results",
+    title: "Achieve Results",
+    description: "Hit milestones and elevate your endurance with expert guidance.",
+    icon: Dumbbell,
   },
 ];
 
-// ─── Animation Variants ──────────────────────────────────────
-
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-const STEP_REVEAL = {
+const FADE_UP = {
   hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, delay: 0.2 + i * 0.2, ease: EASE },
-  }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
 };
 
-const HEADING_REVEAL = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: EASE },
-  },
+const STAGGER = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15 } },
 };
-
-// ─── SVG Connector ───────────────────────────────────────────
-// Horizontal dashed path that "draws" itself on scroll. Sits between
-// step cards on desktop (lg+). Hidden on smaller screens where the
-// layout stacks vertically and uses a simple vertical line instead.
-
-function HorizontalConnector() {
-  const ref = useRef<SVGSVGElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-20%" });
-
-  return (
-    <svg
-      ref={ref}
-      className="hidden lg:block absolute top-12 left-0 w-full h-6 pointer-events-none"
-      viewBox="0 0 1000 24"
-      preserveAspectRatio="none"
-      fill="none"
-      aria-hidden
-    >
-      {/* Track (faint background) */}
-      <path
-        d="M160 12 H840"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeDasharray="8 6"
-        className="text-border"
-      />
-      {/* Animated overlay that draws in */}
-      <motion.path
-        d="M160 12 H840"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeDasharray="8 6"
-        className="text-lime"
-        initial={{ pathLength: 0 }}
-        animate={inView ? { pathLength: 1 } : { pathLength: 0 }}
-        transition={{ duration: 1.2, delay: 0.4, ease: "easeInOut" }}
-      />
-    </svg>
-  );
-}
-
-// Vertical connector for mobile/tablet stacked layout.
-// Draws downward between each step card.
-
-function VerticalConnector({ index }: { index: number }) {
-  const ref = useRef<SVGSVGElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-10%" });
-
-  return (
-    <svg
-      ref={ref}
-      className="mx-auto block lg:hidden h-12 w-6"
-      viewBox="0 0 24 48"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M12 0 V48"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeDasharray="6 5"
-        className="text-border"
-      />
-      <motion.path
-        d="M12 0 V48"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeDasharray="6 5"
-        className="text-lime"
-        initial={{ pathLength: 0 }}
-        animate={inView ? { pathLength: 1 } : { pathLength: 0 }}
-        transition={{ duration: 0.6, delay: 0.15 + index * 0.2, ease: "easeInOut" }}
-      />
-    </svg>
-  );
-}
-
-// ─── Step Card ───────────────────────────────────────────────
-
-function Step({ step, index }: { step: StepData; index: number }) {
-  const Icon = step.icon;
-
-  return (
-    <motion.div
-      className="relative flex flex-col items-center text-center"
-      variants={STEP_REVEAL}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-60px" }}
-      custom={index}
-    >
-      {/* Large stylised number — sits behind the icon */}
-      <span
-        className="absolute -top-4 font-display text-8xl text-muted-foreground/10 select-none"
-        aria-hidden
-      >
-        {step.number}
-      </span>
-
-      {/* Icon with pulse ring */}
-      <div className="relative z-10 mb-5">
-        <div
-          className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-2xl",
-            "bg-lime/10 text-lime",
-            "transition-colors duration-300",
-          )}
-        >
-          <Icon size={28} strokeWidth={2} />
-        </div>
-        {/* Pulse ring — draws attention to each step sequentially */}
-        <span
-          className={cn(
-            "absolute inset-0 -z-10 rounded-2xl bg-lime/20",
-            "animate-ping [animation-duration:2.5s]",
-          )}
-          style={{ animationDelay: `${index * 0.6}s` }}
-          aria-hidden
-        />
-      </div>
-
-      {/* Step number badge */}
-      <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-lime text-xs font-bold text-black">
-        {index + 1}
-      </span>
-
-      <h3 className="font-display text-xl text-foreground">{step.title}</h3>
-      <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-        {step.description}
-      </p>
-    </motion.div>
-  );
-}
-
-// ─── Main Section ────────────────────────────────────────────
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="relative bg-muted/30 py-20 sm:py-28 lg:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section header */}
-        <motion.div
-          className="mb-16 text-center sm:mb-20"
-          variants={HEADING_REVEAL}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-        >
-          <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-lime">
-            How It Works
-          </span>
-          <h2 className="font-display text-4xl sm:text-5xl text-foreground">
-            Three steps to a{" "}
-            <span className="text-lime">stronger you</span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base text-muted-foreground leading-relaxed sm:text-lg">
-            No complex setup, no learning curve. Get started in minutes and
-            let the platform do the heavy lifting.
-          </p>
-        </motion.div>
-
-        {/* Desktop: 3-column grid with horizontal SVG connector */}
-        <div className="relative">
-          <HorizontalConnector />
-
-          {/* Mobile/Tablet: stacked with vertical connectors between cards */}
-          <div className="flex flex-col items-center gap-0 lg:hidden">
-            {STEPS.map((step, i) => (
-              <div key={step.number} className="w-full max-w-sm">
-                <Step step={step} index={i} />
-                {i < STEPS.length - 1 && <VerticalConnector index={i} />}
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop: horizontal grid — hidden below lg */}
-          <div className="hidden lg:grid lg:grid-cols-3 lg:gap-12">
-            {STEPS.map((step, i) => (
-              <Step key={step.number} step={step} index={i} />
-            ))}
-          </div>
+    <section className="relative w-full overflow-hidden bg-background py-24 lg:py-32">
+      <motion.div
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+        variants={STAGGER}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        
+        {/* ─── Typography Header ─── */}
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-24 mb-24">
+          <motion.div variants={FADE_UP} className="flex flex-col items-start gap-8 w-full lg:w-1/2">
+            <h2 className="font-display text-6xl sm:text-7xl lg:text-[9rem] font-bold text-foreground tracking-tighter leading-none">
+              How It
+            </h2>
+            <p className="max-w-sm text-sm font-medium text-muted-foreground ml-0 lg:ml-24">
+              Whether you're a beginner looking to kickstart your fitness journey or an experienced athlete aiming to reach new heights.
+            </p>
+          </motion.div>
+          <motion.div variants={FADE_UP} className="flex flex-col items-start lg:items-end gap-8 w-full lg:w-1/2 mt-0 lg:mt-24">
+            <p className="max-w-sm text-sm font-medium text-muted-foreground mr-0 lg:mr-24 text-left lg:text-right">
+              At FitTrack, we are dedicated to helping you achieve your health and wellness goals with a comprehensive range of fitness tracking tools.
+            </p>
+            <h2 className="font-display text-6xl sm:text-7xl lg:text-[9rem] font-bold text-foreground tracking-tighter leading-none">
+              Works
+            </h2>
+          </motion.div>
         </div>
-      </div>
+
+        {/* ─── Cutout Cards Grid ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {STEPS.map((step) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.id}
+                variants={FADE_UP}
+                className="relative overflow-visible rounded-[32px] border border-border bg-card p-6 sm:p-8 pt-10 h-full flex flex-col group transition-shadow hover:shadow-xl"
+              >
+                {/* Masking block to hide the default rounded border on top-right */}
+                <div className="absolute -right-[2px] -top-[2px] h-[66px] w-[66px] bg-background z-10" />
+                
+                {/* SVG Organic Cutout */}
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 64 64"
+                  className="absolute -right-[1px] -top-[1px] z-20 text-border"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Fill area connecting the card to the cutout */}
+                  <path
+                    d="M 0 0 C 32 0 32 32 32 32 C 32 64 64 64 64 64 L 0 64 Z"
+                    className="fill-card"
+                  />
+                  {/* The curved border stroke */}
+                  <path
+                    d="M 0 0 C 32 0 32 32 32 32 C 32 64 64 64 64 64"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    fill="none"
+                  />
+                </svg>
+
+                {/* Floating Arrow Button */}
+                <button className="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:bg-lime group-hover:text-black z-30">
+                  <ArrowUpRight size={20} strokeWidth={2.5} />
+                </button>
+
+                {/* Card Content */}
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-muted/50 text-foreground mb-16 transition-colors group-hover:bg-lime/20 group-hover:text-lime">
+                  <Icon size={28} strokeWidth={1.5} />
+                </div>
+                
+                <div className="mt-auto">
+                  <h3 className="font-display text-xl font-bold text-foreground tracking-tight">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+      </motion.div>
     </section>
   );
 }

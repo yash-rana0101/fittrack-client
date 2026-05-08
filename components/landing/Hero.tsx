@@ -1,297 +1,186 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { Play, TrendingUp, Flame, Timer } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 // ─── Animation Variants ──────────────────────────────────────
 
-const EASE_OUT_EXPO = [0.22, 1, 0.36, 1] as const;
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 const FADE_UP = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (delay: number) => ({
+  hidden: { opacity: 0, y: 40 },
+  visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, delay, ease: EASE_OUT_EXPO },
-  }),
+    transition: { duration: 0.8, ease: EASE_OUT },
+  },
 };
 
-const STAGGER_CONTAINER = {
+const STAGGER = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
   },
 };
-
-const WORD_REVEAL = {
-  hidden: { opacity: 0, y: 40, rotateX: 45 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: { duration: 0.5, ease: EASE_OUT_EXPO },
-  },
-};
-
-const FLOAT = {
-  initial: { y: 0 },
-  animate: {
-    y: [-6, 6, -6],
-    transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const },
-  },
-};
-
-const FLOAT_DELAYED = {
-  initial: { y: 0 },
-  animate: {
-    y: [6, -6, 6],
-    transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut" as const, delay: 1.5 },
-  },
-};
-
-// ─── Avatar data ─────────────────────────────────────────────
-
-const AVATARS = [
-  { src: "/avatars/avatar-1.png", alt: "Athlete 1" },
-  { src: "/avatars/avatar-2.png", alt: "Athlete 2" },
-  { src: "/avatars/avatar-3.png", alt: "Athlete 3" },
-  { src: "/avatars/avatar-4.png", alt: "Athlete 4" },
-];
 
 // ─── Sub-components ──────────────────────────────────────────
 
-function AnimatedHeadline() {
-  const line1 = "Today's workout";
-  const line2 = "is ready for you!";
-
+function CategoryList() {
+  const cats = ["Gym", "Yoga", "Dance", "Sports", "Swimming", "Meditation"];
   return (
-    <motion.h1
-      className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[0.95]"
-      variants={STAGGER_CONTAINER}
-      initial="hidden"
-      animate="visible"
-      style={{ perspective: 400 }}
-    >
-      <span className="block overflow-hidden">
-        {line1.split(" ").map((word, i) => (
-          <motion.span
-            key={i}
-            className="inline-block mr-[0.25em]"
-            variants={WORD_REVEAL}
-          >
-            {word}
-          </motion.span>
-        ))}
-      </span>
-      <span className="block overflow-hidden mt-1">
-        {line2.split(" ").map((word, i) => (
-          <motion.span
-            key={i}
+    <motion.div variants={FADE_UP} className="flex flex-col gap-4 items-end">
+      {cats.map((cat, i) => {
+        const isActive = i === 0;
+        return (
+          <div
+            key={cat}
             className={cn(
-              "inline-block mr-[0.25em]",
-              word === "you!" && "text-lime",
+              "flex items-center gap-6 text-sm transition-colors cursor-pointer",
+              isActive ? "font-bold text-foreground" : "font-medium text-muted-foreground hover:text-foreground"
             )}
-            variants={WORD_REVEAL}
           >
-            {word}
-          </motion.span>
-        ))}
-      </span>
-    </motion.h1>
-  );
-}
-
-function HeroCTAs() {
-  return (
-    <motion.div
-      className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4"
-      variants={FADE_UP}
-      initial="hidden"
-      animate="visible"
-      custom={0.7}
-    >
-      <Link
-        href="/join"
-        id="hero-cta-primary"
-        className={cn(
-          "inline-flex items-center justify-center rounded-full px-8 py-3.5",
-          "bg-lime text-black font-semibold text-base",
-          "transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98]",
-          "shadow-[0_0_40px_rgba(209,255,0,0.3)]",
-        )}
-      >
-        Get Started Free
-      </Link>
-      <Link
-        href="/demo"
-        id="hero-cta-secondary"
-        className={cn(
-          "inline-flex items-center gap-2 justify-center rounded-full px-8 py-3.5",
-          "border border-border text-foreground font-medium text-base",
-          "transition-all duration-200 hover:bg-muted hover:scale-[1.02] active:scale-[0.98]",
-        )}
-      >
-        <Play size={16} className="fill-current" />
-        Watch Demo
-      </Link>
+            <span>{cat}</span>
+            <span className={cn("w-6 text-right font-mono text-xs", isActive ? "text-foreground" : "text-muted-foreground")}>
+              {String(i + 1).padStart(2, "0")}
+            </span>
+          </div>
+        );
+      })}
     </motion.div>
   );
 }
 
-function SocialProof() {
+function MonitorCard() {
+  const items = ["Exercises", "Food", "Starvation", "Walking", "Water", "Dream"];
+  
   return (
-    <motion.div
-      className="flex items-center gap-3"
-      variants={FADE_UP}
-      initial="hidden"
-      animate="visible"
-      custom={0.9}
-    >
-      <div className="flex -space-x-2.5">
-        {AVATARS.map(({ src, alt }, i) => (
-          <div
-            key={i}
-            className="relative h-9 w-9 overflow-hidden rounded-full border-2 border-background"
+    <motion.div variants={FADE_UP} className="relative z-10">
+      <div className="mb-6">
+        <h3 className="font-display font-bold text-2xl text-foreground leading-tight tracking-tight">
+          Monitor your<br />performance
+        </h3>
+      </div>
+      
+      <div className="relative w-48 rounded-[24px] border border-border bg-card py-6 px-6 shadow-sm">
+        <ul className="flex flex-col gap-4">
+          {items.map((item, i) => (
+            <li
+              key={i}
+              className={cn(
+                "text-sm transition-colors cursor-pointer",
+                i === 0 ? "font-bold text-foreground" : "font-medium text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        {/* Liquid Tab Notch */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[100%] h-[100px] w-[40px] group cursor-pointer">
+          {/* Mask to hide straight border line underneath */}
+          <div className="absolute left-[-2px] top-[1px] bottom-[1px] w-[4px] bg-card z-10" />
+          
+          {/* SVG Organic Curve */}
+          <svg
+            width="40"
+            height="100"
+            viewBox="0 0 40 100"
+            className="absolute left-[-1px] top-0 text-border fill-card"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <Image
-              src={src}
-              alt={alt}
-              fill
-              sizes="36px"
-              className="object-cover"
+            <path
+              d="M 0 0 C 20 0 40 20 40 50 C 40 80 20 100 0 100"
+              stroke="currentColor"
+              strokeWidth="1"
             />
+          </svg>
+          
+          {/* Floating Action Button inside Notch */}
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-foreground text-background flex items-center justify-center z-20 shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:bg-lime group-hover:text-black">
+            <ArrowUpRight size={18} strokeWidth={2.5} />
           </div>
-        ))}
-        {/* "+N" overflow indicator */}
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-lime text-[11px] font-bold text-black">
-          +9k
         </div>
       </div>
-      <p className="text-sm text-muted-foreground">
-        Trusted by <span className="font-semibold text-foreground">10,000+</span> athletes
-      </p>
     </motion.div>
   );
 }
 
-function PerformanceBadge() {
+function StatBadge({ num, val, label }: { num: string; val: string; label: string }) {
   return (
-    <motion.div
-      className={cn(
-        "absolute -left-4 sm:-left-6 bottom-16 sm:bottom-24 z-10",
-        "flex items-center gap-3 rounded-2xl bg-background/90 backdrop-blur-md",
-        "border border-border shadow-xl px-4 py-3",
-      )}
-      variants={FLOAT}
-      initial="initial"
-      animate="animate"
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime">
-        <TrendingUp size={20} className="text-black" />
+    <motion.div variants={FADE_UP} className="flex flex-col gap-3">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
+        {num}
       </div>
       <div>
-        <p className="text-xs text-muted-foreground">Weekly Progress</p>
-        <p className="text-sm font-bold text-foreground">+23% Performance</p>
+        <h4 className="font-display text-4xl font-bold text-foreground tracking-tight">{val}</h4>
+        <p className="text-sm font-semibold text-muted-foreground mt-1">{label}</p>
       </div>
     </motion.div>
   );
 }
 
-function CalorieBadge() {
+function Headline() {
   return (
-    <motion.div
-      className={cn(
-        "absolute -right-3 sm:-right-5 top-12 sm:top-16 z-10",
-        "flex items-center gap-3 rounded-2xl bg-background/90 backdrop-blur-md",
-        "border border-border shadow-xl px-4 py-3",
-      )}
-      variants={FLOAT_DELAYED}
-      initial="initial"
-      animate="animate"
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black dark:bg-white">
-        <Flame size={20} className="text-white dark:text-black" />
-      </div>
-      <div>
-        <p className="text-xs text-muted-foreground">Calories Burned</p>
-        <p className="text-sm font-bold text-foreground">1,248 kcal</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function HeroImage() {
-  return (
-    <motion.div
-      className="relative w-full max-w-lg lg:max-w-none"
-      variants={FADE_UP}
-      initial="hidden"
-      animate="visible"
-      custom={0.4}
-    >
-      <PerformanceBadge />
-      <CalorieBadge />
-
-      {/* Main image with custom large-radius mask */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl">
-        <Image
-          src="/hero-athlete.png"
-          alt="Athlete performing a workout in a modern gym"
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-          className="object-cover"
-          priority
-        />
-        {/* Gradient overlay for depth — bottom fades into background so the image
-            doesn't end with a hard edge against the page content below */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-      </div>
-
-      {/* Decorative accent ring behind the image */}
-      <div
-        className="absolute -inset-4 -z-10 rounded-[2.5rem] border border-lime/20"
-        aria-hidden
-      />
-    </motion.div>
-  );
-}
-
-function HeroContent() {
-  return (
-    <div className="flex flex-col gap-6 sm:gap-8">
-      {/* Eyebrow tag */}
-      <motion.div
-        className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-muted/50 px-4 py-1.5"
-        variants={FADE_UP}
-        initial="hidden"
-        animate="visible"
-        custom={0.1}
-      >
-        <Timer size={14} className="text-lime" />
-        <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-          No.1 Fitness Platform
-        </span>
+    <div className="flex flex-col gap-2 sm:gap-4 w-full">
+      <motion.div variants={FADE_UP} className="flex items-center flex-wrap gap-4">
+        <h1 className="font-display text-5xl sm:text-7xl lg:text-[7.5rem] tracking-[-0.04em] text-foreground font-bold leading-none">
+          Today's workout
+        </h1>
+        {/* <div className="relative h-14 w-32 sm:h-20 sm:w-48 lg:h-[100px] lg:w-64 overflow-hidden rounded-full bg-muted">
+          <Image
+            src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop"
+            alt="Workout inline 1"
+            fill
+            className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+          />
+        </div> */}
       </motion.div>
-
-      <AnimatedHeadline />
-
-      <motion.p
-        className="max-w-md text-base sm:text-lg text-muted-foreground leading-relaxed"
-        variants={FADE_UP}
-        initial="hidden"
-        animate="visible"
-        custom={0.55}
-      >
-        Track every rep, set, and mile. Smart insights powered by real data — so you
-        can train harder, recover smarter, and see results faster.
-      </motion.p>
-
-      <HeroCTAs />
-      <SocialProof />
+      <motion.div variants={FADE_UP} className="flex items-center flex-wrap gap-4">
+        {/* <div className="relative h-14 w-24 sm:h-20 sm:w-32 lg:h-[100px] lg:w-48 overflow-hidden rounded-full bg-muted">
+          <Image
+            src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1470&auto=format&fit=crop"
+            alt="Workout inline 2"
+            fill
+            className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+          />
+        </div> */}
+        <h1 className="font-display text-5xl sm:text-7xl lg:text-[7.5rem] tracking-[-0.04em] text-foreground font-bold leading-none">
+          is ready for you!
+        </h1>
+      </motion.div>
     </div>
+  );
+}
+
+function HeroVisual() {
+  const router = useRouter();
+    return (
+    <motion.div variants={FADE_UP} className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] mt-12 lg:mt-0">
+      <div className="relative w-full h-full overflow-hidden rounded-[40px] sm:rounded-[64px] bg-muted shadow-2xl">
+        <Image
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop"
+          alt="Athlete working out"
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/10" />
+      </div>
+
+      {/* Pill CTA - Bottom Right */}
+      <div className="absolute -bottom-6 right-4 lg:bottom-12 lg:-right-8 z-20">
+        <button onClick={() => router.push("/auth/sign-up")} className="group flex h-16 items-center overflow-hidden rounded-full bg-foreground pl-8 pr-2 shadow-2xl transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <span className="mr-6 text-base font-bold text-background">Start Now</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lime text-black transition-transform group-hover:-rotate-45">
+            <ArrowRight size={20} strokeWidth={2.5} />
+          </div>
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
@@ -299,24 +188,38 @@ function HeroContent() {
 
 export function Hero() {
   return (
-    <section
-      id="hero"
-      className="relative overflow-hidden bg-background"
-    >
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-24">
-        <HeroContent />
-        <HeroImage />
-      </div>
+    <section className="relative w-full overflow-hidden bg-background pt-32 pb-16 lg:pt-40 lg:pb-24">
+      <motion.div
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+        variants={STAGGER}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Top Header Row */}
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
+          <Headline />
+          <div className="hidden lg:block shrink-0 mt-4">
+            <CategoryList />
+          </div>
+        </div>
 
-      {/* Background texture — subtle dot grid for visual depth */}
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.03]"
-        style={{
-          backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-        aria-hidden
-      />
+        {/* Main Body Row */}
+        <div className="mt-16 lg:mt-24 flex flex-col lg:flex-row gap-12 lg:gap-16">
+          {/* Left Sidebar */}
+          <div className="w-full lg:w-[280px] shrink-0 flex flex-col gap-12 justify-between">
+            <MonitorCard />
+            <div className="flex gap-12 lg:flex-col lg:gap-12">
+              <StatBadge num="01" val="100+" label="Client Reviews" />
+              <StatBadge num="02" val="20+" label="Expert Team" />
+            </div>
+          </div>
+
+          {/* Main Visual */}
+          <div className="w-full flex-1">
+            <HeroVisual />
+          </div>
+        </div>
+      </motion.div>
     </section>
   );
 }
