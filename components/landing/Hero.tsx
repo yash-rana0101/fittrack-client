@@ -173,7 +173,7 @@ function HeroVisual() {
 
       {/* Pill CTA - Bottom Right */}
       <div className="absolute -bottom-6 right-4 lg:bottom-12 lg:-right-8 z-20">
-        <button onClick={() => router.push("/auth/sign-up")} className="group flex h-16 items-center overflow-hidden rounded-full bg-foreground pl-8 pr-2 shadow-2xl transition-transform hover:scale-[1.02] active:scale-[0.98]">
+        <button onClick={() => router.push("/join")} className="group flex h-16 items-center overflow-hidden rounded-full bg-foreground pl-8 pr-2 shadow-2xl transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <span className="mr-6 text-base font-bold text-background">Start Now</span>
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lime text-black transition-transform group-hover:-rotate-45">
             <ArrowRight size={20} strokeWidth={2.5} />
