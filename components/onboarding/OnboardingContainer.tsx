@@ -77,7 +77,7 @@ export function OnboardingContainer() {
         </header>
 
         {/* Step Content Area */}
-        <div className="relative h-[600px] px-6 pb-8 pt-4">
+        <div className="relative px-6 pb-8 pt-4">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={activeStep}
@@ -87,7 +87,7 @@ export function OnboardingContainer() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-x-6 bottom-8 top-4"
+              className="flex flex-col min-h-[400px]"
             >
               {renderStep()}
             </motion.div>
