@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Sofa, Footprints, Activity, Flame, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 const LEVELS = [
   {
@@ -41,15 +43,53 @@ const LEVELS = [
 export function Step4Activity() {
   const { nextStep, prevStep, updateData, data } = useOnboardingStore();
   const selectedLevel = data.activityLevel;
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSelect = (id: string) => {
-    updateData({ activityLevel: id });
-    nextStep(); // Auto-advance for single-select quick flows
+  const handleSelect = async (id: string) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      const activityMap: Record<string, string> = {
+        sedentary: "SEDENTARY",
+        light: "LIGHTLY_ACTIVE",
+        moderate: "MODERATELY_ACTIVE",
+        very_active: "VERY_ACTIVE",
+        athlete: "EXTRA_ACTIVE",
+      };
+      
+      await apiClient.patch("/users/onboarding", {
+        step: 4,
+        activityLevel: activityMap[id] || "SEDENTARY",
+      });
+
+      updateData({ activityLevel: id });
+      nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to save activity level");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSkip = () => {
-    updateData({ activityLevel: undefined });
-    nextStep();
+  const handleSkip = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      await apiClient.patch("/users/onboarding", {
+        step: 4,
+        skip: true,
+      });
+
+      updateData({ activityLevel: undefined });
+      nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to skip");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,6 +132,11 @@ export function Step4Activity() {
               </motion.button>
             );
           })}
+          {errorMsg && (
+            <div className="mt-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+              {errorMsg}
+            </div>
+          )}
         </div>
       </div>
 
@@ -99,17 +144,24 @@ export function Step4Activity() {
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-xl border border-border bg-card px-8 py-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
+          disabled={isSubmitting}
+          className="rounded-xl border border-border bg-card px-8 py-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:opacity-50"
         >
           Back
         </button>
-        <button
-          type="button"
-          onClick={handleSkip}
-          className="px-4 py-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Skip for now
-        </button>
+        <div className="flex items-center gap-4">
+          {isSubmitting && (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+          )}
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={isSubmitting}
+            className="px-4 py-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+          >
+            Skip for now
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Search, Download, Bell, ArrowRight, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const NAV_LINKS = ["Home", "About", "Classes", "Contact", "Blog", "About Us"];
 
 export function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -77,7 +79,7 @@ export function Navbar() {
             </button>
           </div>
 
-          <button className="group relative flex h-12 items-center overflow-hidden rounded-full bg-foreground pl-6 pr-1.5 shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <button onClick={() => router.push("/join")} className="group relative flex h-12 items-center overflow-hidden rounded-full bg-foreground pl-6 pr-1.5 shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]">
             <span className="mr-4 text-sm font-semibold text-background">Log In</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-lime text-black transition-transform group-hover:-rotate-45">
               <ArrowRight size={18} strokeWidth={2.5} />

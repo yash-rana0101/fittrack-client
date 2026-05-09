@@ -8,6 +8,7 @@ import { Camera, User, Bell } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Validation Schema ───────────────────────────────────────
 
@@ -25,6 +26,8 @@ export function Step5Profile() {
   const { nextStep, prevStep, updateData, data } = useOnboardingStore();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(data.avatarUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -53,15 +56,28 @@ export function Step5Profile() {
     }
   };
 
-  const onSubmit = (formData: Step5Values) => {
-    updateData({
-      username: formData.username,
-      bio: formData.bio,
-      avatarUrl: avatarPreview || "",
-      // notificationsEnabled: formData.notificationsEnabled, // We could store this if needed
-    });
-    // This is the final step, proceed to Success screen
-    nextStep();
+  const onSubmit = async (formData: Step5Values) => {
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      await apiClient.patch("/users/onboarding", {
+        step: 5,
+        username: formData.username,
+        bio: formData.bio || undefined,
+        avatarUrl: avatarPreview || undefined,
+      });
+
+      updateData({
+        username: formData.username,
+        bio: formData.bio,
+        avatarUrl: avatarPreview || "",
+      });
+      nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to complete setup.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -160,6 +176,12 @@ export function Step5Profile() {
               />
             </button>
           </div>
+
+          {errorMsg && (
+            <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
 
@@ -174,14 +196,21 @@ export function Step5Profile() {
         <button
           form="step5-form"
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className={cn(
             "flex-[2] rounded-xl bg-lime py-4 text-sm font-semibold text-black transition-all",
             "hover:brightness-110 active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100",
+            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100 flex justify-center items-center gap-2",
           )}
         >
-          Complete Setup
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+              Completing...
+            </>
+          ) : (
+            "Complete Setup"
+          )}
         </button>
       </div>
     </div>

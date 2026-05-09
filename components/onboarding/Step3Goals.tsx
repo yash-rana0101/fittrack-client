@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Goal Data ───────────────────────────────────────────────
 
@@ -24,6 +25,8 @@ export function Step3Goals() {
   const [selectedGoals, setSelectedGoals] = useState<string[]>(
     Array.isArray(data.goals) ? data.goals : [],
   );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleGoal = (id: string) => {
     setSelectedGoals((prev) => {
@@ -41,11 +44,36 @@ export function Step3Goals() {
 
   const isValid = selectedGoals.length > 0 && selectedGoals.length <= 3;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isValid) {
+    if (!isValid) return;
+
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const goalMap: Record<string, string> = {
+        lose_weight: "LOSE_WEIGHT",
+        build_muscle: "BUILD_MUSCLE",
+        stay_active: "STAY_ACTIVE",
+        improve_flexibility: "INCREASE_FLEXIBILITY",
+        eat_healthier: "EAT_HEALTHIER",
+        reduce_stress: "REDUCE_STRESS",
+      };
+
+      const mappedGoals = selectedGoals.map((id) => goalMap[id]).filter(Boolean);
+
+      await apiClient.patch("/users/onboarding", {
+        step: 3,
+        goals: mappedGoals,
+      });
+
       updateData({ goals: selectedGoals });
       nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to save goals. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,6 +124,12 @@ export function Step3Goals() {
               );
             })}
           </div>
+
+          {errorMsg && (
+            <div className="mt-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
 
@@ -110,14 +144,21 @@ export function Step3Goals() {
         <button
           form="step3-form"
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className={cn(
             "flex-[2] rounded-xl bg-lime py-4 text-sm font-semibold text-black transition-all",
             "hover:brightness-110 active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100",
+            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100 flex justify-center items-center gap-2",
           )}
         >
-          Continue
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+              Saving...
+            </>
+          ) : (
+            "Continue"
+          )}
         </button>
       </div>
     </div>

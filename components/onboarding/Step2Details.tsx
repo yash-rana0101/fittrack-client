@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Validation Schema ───────────────────────────────────────
 
@@ -31,6 +32,8 @@ const inToCm = (inches: number) => Math.round(inches / 0.393701);
 export function Step2Details() {
   const { nextStep, prevStep, updateData, data } = useOnboardingStore();
   const [unitSystem, setUnitSystem] = useState<"metric" | "imperial">("metric");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -75,14 +78,37 @@ export function Step2Details() {
     });
   };
 
-  const onSubmit = (formData: Step2Values) => {
-    updateData({
-      dob: formData.dob,
-      gender: formData.gender,
-      height: formData.height,
-      weight: formData.weight,
-    });
-    nextStep();
+  const onSubmit = async (formData: Step2Values) => {
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      const genderMap: Record<string, string> = {
+        male: "MALE",
+        female: "FEMALE",
+        "non-binary": "OTHER",
+        "prefer-not-to-say": "PREFER_NOT_TO_SAY"
+      };
+
+      await apiClient.patch("/users/onboarding", {
+        step: 2,
+        dateOfBirth: new Date(formData.dob).toISOString(),
+        gender: genderMap[formData.gender] || "PREFER_NOT_TO_SAY",
+        height: formData.height,
+        weight: formData.weight,
+      });
+
+      updateData({
+        dob: formData.dob,
+        gender: formData.gender,
+        height: formData.height,
+        weight: formData.weight,
+      });
+      nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to save details. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -213,6 +239,12 @@ export function Step2Details() {
               className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-lime"
             />
           </div>
+
+          {errorMsg && (
+            <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
 
@@ -227,14 +259,21 @@ export function Step2Details() {
         <button
           form="step2-form"
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className={cn(
             "flex-[2] rounded-xl bg-lime py-4 text-sm font-semibold text-black transition-all",
             "hover:brightness-110 active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100",
+            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100 flex justify-center items-center gap-2",
           )}
         >
-          Continue
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+              Saving...
+            </>
+          ) : (
+            "Continue"
+          )}
         </button>
       </div>
     </div>

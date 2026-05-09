@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 // ─── Validation Schema ───────────────────────────────────────
 
@@ -42,6 +43,8 @@ function calculateStrength(password: string): number {
 export function Step1Account() {
   const { nextStep, updateData, data } = useOnboardingStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -62,9 +65,23 @@ export function Step1Account() {
   const passwordValue = watch("password");
   const strengthScore = calculateStrength(passwordValue);
 
-  const onSubmit = (formData: Step1Values) => {
-    updateData({ name: formData.name, email: formData.email });
-    nextStep();
+  const onSubmit = async (formData: Step1Values) => {
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      const response = await apiClient.post<{ data: { token: string } }>("/auth/signup", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+      apiClient.setToken(response.data.token);
+      updateData({ name: formData.name, email: formData.email });
+      nextStep();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to create account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -214,6 +231,12 @@ export function Step1Account() {
               <p className="text-xs text-red-500 pl-1">{errors.confirmPassword.message}</p>
             )}
           </div>
+
+          {errorMsg && (
+            <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
 
@@ -221,14 +244,21 @@ export function Step1Account() {
         <button
           form="step1-form"
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className={cn(
             "w-full rounded-xl bg-lime py-4 text-sm font-semibold text-black transition-all",
             "hover:brightness-110 active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100",
+            "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:active:scale-100 flex justify-center items-center gap-2",
           )}
         >
-          Continue
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+              Creating...
+            </>
+          ) : (
+            "Continue"
+          )}
         </button>
       </div>
     </div>
