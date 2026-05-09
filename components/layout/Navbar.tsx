@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-const NAV_LINKS = ["Home", "Classes", "About", "Testimonials", "Contact"];
+const NAV_LINKS = ["Home", "Classes", "Pricing", "Testimonials", "Contact"];
 
 export function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
