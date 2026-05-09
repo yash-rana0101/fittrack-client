@@ -36,7 +36,7 @@ export function CTASection() {
   };
 
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32">
+    <section id="contact" className="relative overflow-hidden py-24 sm:py-32">
       {/* Background Gradient with subtle motion */}
       <div className="absolute inset-0 -z-10 bg-black">
         <motion.div

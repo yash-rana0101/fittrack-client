@@ -7,12 +7,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-const NAV_LINKS = ["Home", "About", "Classes", "Contact", "Blog", "About Us"];
+const NAV_LINKS = ["Home", "Classes", "About", "Testimonials", "Contact"];
 
 export function Navbar() {
   const [activeLink, setActiveLink] = useState("Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+
+  const scrollToSection = (link: string) => {
+    setActiveLink(link);
+    setMobileOpen(false); // Close mobile menu if open
+    
+    // Check if we are on the home page, if not navigate to home first
+    if (window.location.pathname !== '/') {
+      router.push(`/#${link.toLowerCase()}`);
+      return;
+    }
+
+    const element = document.getElementById(link.toLowerCase());
+    if (element) {
+      // Get the navbar height to offset the scroll (approx 80px / 5rem)
+      const y = element.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    } else if (link === "Home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <>
@@ -33,7 +53,7 @@ export function Navbar() {
             return (
               <div key={link} className="relative flex h-full items-center px-6">
                 <button
-                  onClick={() => setActiveLink(link)}
+                  onClick={() => scrollToSection(link)}
                   className={cn(
                     "text-sm transition-colors",
                     isActive ? "font-semibold text-foreground" : "font-medium text-muted-foreground hover:text-foreground"
@@ -118,10 +138,7 @@ export function Navbar() {
                 {NAV_LINKS.map((link) => (
                   <button
                     key={link}
-                    onClick={() => {
-                      setActiveLink(link);
-                      setMobileOpen(false);
-                    }}
+                    onClick={() => scrollToSection(link)}
                     className={cn(
                       "text-left text-lg transition-colors",
                       activeLink === link ? "font-semibold text-lime" : "font-medium text-foreground"

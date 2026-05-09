@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Dumbbell, Apple, LineChart, Settings, Menu, X, Bell } from "lucide-react";
+import { LayoutDashboard, Dumbbell, Apple, LineChart, Settings, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useOnboardingStore } from "@/store/useOnboardingStore";
+import { apiClient } from "@/lib/api-client";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -18,11 +18,32 @@ const NAV_ITEMS = [
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data } = useOnboardingStore();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userName, setUserName] = useState<string>("Athlete");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fallback data if onboarding was skipped or refreshed
-  const userName = data?.name || "Athlete";
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await apiClient.get<{ data: { user: { name: string } } }>("/users/me");
+        if (response.data?.user?.name) {
+          setUserName(response.data.user.name);
+        }
+      } catch (err) {
+        // Redirect to login if unauthorized
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
+  }, [router]);
+
+  const handleLogout = () => {
+    apiClient.clearToken();
+    router.push("/login");
+  };
 
   return (
     <div className="flex min-h-screen bg-muted/20">
@@ -65,14 +86,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         {/* User Profile Snippet at bottom of sidebar */}
         <div className="border-t border-border p-4">
-          <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-muted cursor-pointer transition-colors">
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-lime/20 flex items-center justify-center text-lime font-bold">
-              {userName.charAt(0).toUpperCase()}
+          <div className="flex items-center justify-between rounded-xl p-2 hover:bg-muted transition-colors">
+            <div className="flex items-center gap-3 cursor-pointer">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-lime/20 flex items-center justify-center text-lime font-bold">
+                {isLoading ? "" : userName.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">
+                  {isLoading ? "Loading..." : userName}
+                </span>
+                <span className="text-xs text-muted-foreground">Free Plan</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">{userName}</span>
-              <span className="text-xs text-muted-foreground">Free Plan</span>
-            </div>
+            <button 
+              onClick={handleLogout}
+              className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </aside>
@@ -90,7 +122,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           
           <div className="hidden lg:flex items-center gap-2">
             <h1 className="font-display text-xl text-foreground">
-              Welcome back, {userName.split(" ")[0]}!
+              Welcome back{isLoading ? "" : `, ${userName.split(" ")[0]}!`}
             </h1>
           </div>
 
@@ -99,8 +131,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Bell size={20} />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-lime" />
             </button>
-            <div className="lg:hidden h-8 w-8 shrink-0 overflow-hidden rounded-full bg-lime/20 flex items-center justify-center text-lime font-bold">
-              {userName.charAt(0).toUpperCase()}
+            <div className="lg:hidden flex items-center gap-2">
+              <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-lime/20 flex items-center justify-center text-lime font-bold">
+                {isLoading ? "" : userName.charAt(0).toUpperCase()}
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                title="Logout"
+              >
+                <LogOut size={18} />
+              </button>
             </div>
           </div>
         </header>

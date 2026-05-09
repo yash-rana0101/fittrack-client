@@ -188,7 +188,7 @@ function HeroVisual() {
 
 export function Hero() {
   return (
-    <section className="relative w-full overflow-hidden bg-background pt-32 pb-16 lg:pt-40 lg:pb-24">
+    <section id="home" className="relative w-full overflow-hidden bg-background pt-32 pb-16 lg:pt-40 lg:pb-24">
       <motion.div
         className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
         variants={STAGGER}

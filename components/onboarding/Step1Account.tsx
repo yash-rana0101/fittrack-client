@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 import { apiClient } from "@/lib/api-client";
+import Link from "next/link";
 
 // ─── Validation Schema ───────────────────────────────────────
 
@@ -240,7 +241,7 @@ export function Step1Account() {
         </form>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-col items-center gap-4">
         <button
           form="step1-form"
           type="submit"
@@ -260,6 +261,13 @@ export function Step1Account() {
             "Continue"
           )}
         </button>
+        
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold text-foreground hover:text-lime transition-colors">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
